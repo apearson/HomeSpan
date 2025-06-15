@@ -455,9 +455,8 @@ void Span::networkCallback(arduino_event_id_t event){
   switch (event) {
 
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-      if(connected){                        // we are in a connected state
+      if(connected){                       // we are in a connected state
         connected=false;                    // move to unconnected state
-        connectionCount++;                  // increment connection count
         addWebLog(true,"*** WiFi Connection Lost!");
         wifiTimeCounter.reset();
         alarmConnect=millis();
@@ -471,12 +470,12 @@ void Span::networkCallback(arduino_event_id_t event){
         addWebLog(true,"WiFi Connected!  IP Address = %s   (RSI=%d  BSSID=%s  \"%s\")",WiFi.localIP().toString().c_str(),WiFi.RSSI(),WiFi.BSSIDstr().c_str(),bssidNames[WiFi.BSSIDstr().c_str()].c_str());
       else
         addWebLog(true,"WiFi Connected!  IP Address = %s   (RSI=%d  BSSID=%s)",WiFi.localIP().toString().c_str(),WiFi.RSSI(),WiFi.BSSIDstr().c_str());
-      if(!connected)
+      if(connected)
         configureNetwork();
       connected=true;
       connectionCount++;
       if(connectionCallback)
-        connectionCallback((connectionCount+1)/2); // TODO: figure out this logic
+        connectionCallback(connectionCount);
       if(rescanInitialTime>0){
         rescanAlarm=millis()+rescanInitialTime;
         rescanStatus=RESCAN_PENDING;
@@ -507,16 +506,16 @@ void Span::networkCallback(arduino_event_id_t event){
       addWebLog(true,"Ethernet Connected!  IP Address = %s",ETH.localIP().toString().c_str());
       connected=true;                          // move to connected state
       connectionCount++;
-      if(!connected)
+      if(connected)
         configureNetwork();
       if(connectionCallback)
-        connectionCallback((connectionCount+1)/2); // TODO: figure out this logic
+        connectionCallback(connectionCount); // TODO: figure out this logic
       resetStatus();
     break;
 
     case ARDUINO_EVENT_ETH_DISCONNECTED:
       if(connected){                        // we are in a connected state
-        connected=false;                          // move to unconnected state
+        connected=false;                    // move to unconnected state
         addWebLog(true,"*** Ethernet Connection Lost!");
       }
       resetStatus();
